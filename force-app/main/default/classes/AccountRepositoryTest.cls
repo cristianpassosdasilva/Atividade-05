@@ -83,4 +83,67 @@ private class AccountRepositoryTest {
         Assert.areEqual(9999, updated.Salary__c);
         Assert.areEqual(Date.newInstance(1995, 10, 10), updated.Birth_Date__c);
     }
+
+    /**
+     * Testa a busca de todos os registros de conta.
+     */
+    @isTest static void testFindAll() {
+        setupData();
+        List<Account> all = AccountRepository.findAll();
+        Assert.isTrue(all.size() >= 3);
+    }
+
+    /**
+     * Testa busca por renda (salário) exata.
+     */
+    @isTest static void testFindByIncome() {
+        setupData();
+        List<Account> result = AccountRepository.findByIncome(5000);
+        Assert.areEqual(1, result.size());
+    }
+
+    /**
+     * Testa busca de registro por ID existente.
+     */
+    @isTest static void testFindByIdSuccess() {
+        setupData();
+        Account acc = [SELECT Id FROM Account WHERE Name = 'João Silva' LIMIT 1];
+        Account found = AccountRepository.findById(acc.Id);
+        Assert.areEqual(acc.Id, found.Id);
+    }
+
+    /**
+     * Testa comportamento ao buscar por ID inexistente (deve lançar exceção).
+     */
+    @isTest static void testFindByIdNotFound() {
+        try {
+            AccountRepository.findById('001000000000000AAA');
+            Assert.fail('Era esperado lançar exceção');
+        } catch (ResourceNotFoundException e) {
+            Assert.isTrue(e.getMessage().contains('not'));
+        }
+    }
+
+    /**
+     * Testa exclusão de conta por ID.
+     */
+    @isTest static void testDeleteById() {
+        setupData();
+        Account acc = [SELECT Id FROM Account WHERE Name = 'Maria Souza' LIMIT 1];
+        AccountRepository.deleteById(acc.Id);
+
+        Account deleted = [SELECT Id, IsDeleted FROM Account WHERE Id = :acc.Id ALL ROWS];
+        Assert.isTrue(deleted.IsDeleted);
+    }
+
+    /**
+     * Testa inserção de novo registro de conta.
+     */
+    @isTest static void testInsertAccount() {
+        Account novo = new Account(Name='Novo Cliente', Salary__c=3200);
+        Account result = AccountRepository.insertAccount(novo);
+        Assert.isNotNull(result.Id);
+        Assert.areEqual('Novo Cliente', result.Name);
+    }
+
 }

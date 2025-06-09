@@ -62,4 +62,42 @@ public with sharing class AccountRepository {
     public static void updateAccount(Account contaAtualizada) {
         update contaAtualizada;
     }
+
+    /**
+     * Retorna todas as contas com os principais campos.
+     */
+    public static List<Account> findAll() {
+        return [SELECT Id, Name, Salary__c, Birth_Date__c FROM Account];
+    }
+
+    /**
+     * Retorna contas com valor exato no campo Salary__c.
+     */
+    public static List<Account> findByIncome(Decimal income) {
+        return [SELECT Id, Name, Salary__c FROM Account WHERE Salary__c = :income];
+    }
+
+    /**
+     * Busca uma conta por ID. Lança exceção se não encontrada.
+     */
+    public static Account findById(Id id) {
+        List<Account> results = [SELECT Id, Name, Salary__c FROM Account WHERE Id = :id LIMIT 1];
+        if (results.isEmpty()) throw new ResourceNotFoundException('Account not found');
+        return results[0];
+    }
+
+    /**
+     * Deleta uma conta pelo ID, utilizando findById.
+     */
+    public static void deleteById(Id id) {
+        delete findById(id);
+    }
+
+    /**
+     * Insere uma nova conta e retorna o registro criado.
+     */
+    public static Account insertAccount(Account acc) {
+        insert acc;
+        return acc;
+    }
 } 
